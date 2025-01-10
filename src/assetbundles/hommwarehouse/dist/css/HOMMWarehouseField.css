@@ -1,0 +1,84 @@
+/**
+ * HOMM warehouse plugin for Craft CMS
+ *
+ * HOMMWarehouseField Field CSS
+ *
+ * @author    Benjamin Ammann
+ * @copyright Copyright (c) 2025 HOMM interactive
+ * @link      https://github.com/HOMMinteractive
+ * @package   HOMMWarehouse
+ * @since     0.0.1
+ */
+
+
+/* Craft Field */
+.warehouse-field .input {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.warehouse-field button[data-number] {
+    display: flex;
+    height: 2.125rem;
+    align-items: center;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.warehouse-field button[data-number]:hover {
+    background-color: #e0e0e0;
+}
+
+.warehouse-field button[data-number]:active {
+    background-color: #d0d0d0;
+}
+
+.warehouse-field input[type="number"] {
+    width: 8rem;
+    max-width: 100%;
+    text-align: center;
+}
+
+/* Chrome, Safari, Edge, Opera */
+.warehouse-field input::-webkit-outer-spin-button,
+.warehouse-field input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+.warehouse-field input[type=number] {
+  -moz-appearance: textfield;
+}
+
+
+/* Craft Attribute HTML */
+.warehouse-attribute {
+    display: flex;
+    gap: 4px;
+}
+
+.warehouse-attribute [data-icon="info"] {
+    position: relative;
+    margin-top: -4px;
+    cursor: pointer;
+}
+
+.warehouse-attribute [data-icon="info"] > div {
+    position: absolute;
+    width: 10rem;
+    top: 0;
+    left: 1.5rem;
+    background: var(--gray-100);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    cursor: auto;
+    z-index: 9;
+}
+
+.warehouse-attribute [data-icon="info"]:hover > div {
+    display: block !important;
+}

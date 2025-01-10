@@ -1,0 +1,28 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * HOMM warehouse plugin for Craft CMS
+ *
+ * HOMMWarehouseField Field Input
+ *
+ * @author    Benjamin Ammann
+ * @copyright Copyright (c) 2025 HOMM interactive
+ * @link      https://github.com/HOMMinteractive
+ * @package   hommwarehouse
+ * @since     0.0.1
+ */
+#}
+
+<div class="warehouse-field">
+    <div class="input">
+        <button data-icon="minus" type="button" data-number="minus" aria-label="{{ 'Decrease'|t('hommwarehouse') }}"></button>
+        <input type="number" id="{{ id }}" name="{{ name }}[stock]" value="{{ value.stock ?? '0' }}" class="text fullwidth"/>
+        <button data-icon="plus" type="button" data-number="plus" aria-label="{{ 'Increase'|t('hommwarehouse') }}"></button>
+    </div>
+
+    {% if value.updatedAt %}
+        <div>
+            <small>{{ 'Last updated at {date}'|t('hommwarehouse', { date: value.updatedAt|datetime('short') }) }}</small>
+        </div>
+    {% endif %}
+</div>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 42.52 42.52">
+  <defs>
+    <linearGradient id="a" data-name="Unbenannter Verlauf" x1="1.26" y1="21.26" x2="41.26" y2="21.26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff006e"/>
+      <stop offset="1" stop-color="#b82f67"/>
+    </linearGradient>
+  </defs>
+  <circle cx="21.26" cy="21.26" r="20" fill="url(#a)"/>
+  <path d="M8.5 29.75V17.13c0-1.04.63-1.98 1.6-2.37l10.68-4.27c.3-.12.64-.12.95 0l10.68 4.27c.97.39 1.6 1.33 1.6 2.37v12.62c0 .53-.43.96-.96.96h-1.91a.96.96 0 0 1-.96-.96V19.23c0-.71-.57-1.28-1.28-1.28H13.59c-.71 0-1.28.57-1.28 1.28v10.52c0 .53-.43.96-.96.96H9.44a.96.96 0 0 1-.96-.96Zm19.46.96H14.57a.96.96 0 0 1-.96-.96v-2.23h15.31v2.23c0 .53-.43.96-.96.96Zm-14.35-4.47v-2.55h15.31v2.55H13.61Zm0-3.82v-3.19h15.31v3.19H13.61Z" fill="#fff"/>
+</svg>

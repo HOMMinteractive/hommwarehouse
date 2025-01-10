@@ -1,0 +1,52 @@
+{
+    "name": "homm/hommwarehouse",
+    "description": "Craft CMS warehouse field",
+    "type": "craft-plugin",
+    "version": "0.0.1",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "hommwarehouse",
+        "warehouse field type"
+    ],
+    "support": {
+        "docs": "https://github.com/HOMMinteractive/hommwarehouse/blob/master/README.md",
+        "issues": "https://github.com/HOMMinteractive/hommwarehouse/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Benjamin Ammann",
+            "homepage": "https://github.com/ammannbe"
+        }
+    ],
+    "require": {
+        "php": "^8.0|^8.1",
+        "craftcms/cms": "^4.0.0",
+        "ext-json": "*",
+        "ext-fileinfo": "*",
+        "phpoffice/phpspreadsheet": "^3.7"
+    },
+    "autoload": {
+        "psr-4": {
+          "homm\\hommwarehouse\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "HOMM Warehouse",
+        "handle": "hommwarehouse",
+        "developer": "HOMM interactive",
+        "developerUrl": "https://github.com/HOMMinteractive",
+        "documentationUrl": "https://github.com/HOMMinteractive/hommwarehouse/blob/master/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/HOMMinteractive/hommwarehouse/master/CHANGELOG.md",
+        "class": "homm\\hommwarehouse\\HOMMWarehouse"
+    },
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "craftcms/plugin-installer": true
+        }
+    }
+}

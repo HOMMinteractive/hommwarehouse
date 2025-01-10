@@ -1,0 +1,27 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * HOMM warehouse plugin for Craft CMS
+ *
+ * HOMMWarehouse settings
+ *
+ * @author    Benjamin Ammann
+ * @copyright Copyright (c) 2025 HOMM interactive
+ * @link      https://github.com/HOMMinteractive
+ * @package   HOMMWarehouse
+ * @since     0.0.1
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+{% do view.registerAssetBundle("homm\\hommwarehouse\\assetbundles\\settings\\SettingsAsset") %}
+
+{{ forms.lightswitchField({
+    label: 'Enabled?'|t('hommwarehouse'),
+    instructions: 'Enable / Disable this plugin'|t('hommwarehouse'),
+    id: 'enabled',
+    name: 'enabled',
+    on: settings['enabled'],
+    required: true,
+}) }}

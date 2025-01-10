@@ -1,0 +1,29 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * HOMM warehouse plugin for Craft CMS
+ *
+ * HOMMWarehouseField Attribute HTML
+ *
+ * @author    Benjamin Ammann
+ * @copyright Copyright (c) 2025 HOMM interactive
+ * @link      https://github.com/HOMMinteractive
+ * @package   hommwarehouse
+ * @since     0.0.1
+ */
+#}
+
+
+<div class="element small">
+    <div class="warehouse-attribute">
+        <span>{{ value.stock ?? '0' }}</span>
+
+        {% if value.updatedAt %}
+            <span data-icon="info">
+                <div style="display: none;">
+                    <span>{{ 'Last updated at {date}'|t('hommwarehouse', { date: value.updatedAt|datetime('short') }) }}</span>
+                </div>
+            </span>
+        {% endif %}
+    </div>
+</div>
