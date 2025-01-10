@@ -77,7 +77,7 @@ class HOMMWarehouse extends Plugin
             }
         );
 
-        if (!HOMMWarehouse::$plugin->getSettings()->enabled) {
+        if (HOMMWarehouse::$plugin->getSettings()->enabled) {
             Event::on(
                 Entry::class,
                 Element::EVENT_REGISTER_EXPORTERS,
