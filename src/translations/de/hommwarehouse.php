@@ -15,7 +15,7 @@
  */
 return [
     '{name} plugin loaded' => '{name} Plugin geladen',
-    'Yes' => 'Ja',
+    'finished' => 'ausgetrunken',
     'No' => 'Nein',
     'Warehouse stock' => 'Lagerbestand',
     'Last updated at {date}' => 'Zuletzt aktualisiert am {date}',
