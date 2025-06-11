@@ -49,21 +49,20 @@ class WarehouseExporter extends ElementExporter
             'Rebsorte',
             'Produzent',
             'Lagerbestand',
+            'Lagerbestand Total',
             'Ausgetrunken',
             'Flaschengroesse',
         ];
         $sheet->fromArray($cols, null, 'A' . $sheetRow++);
 
-        foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'] as $col) {
+        foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'] as $col) {
             $sheet->getStyle($col . $sheetRow - 1)->getFont()->setBold(true);
         }
 
-        $sheet->getStyle('F' . $sheetRow - 1)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
-        $sheet->getStyle('I' . $sheetRow - 1)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-
 
         $eagerLoadableFieldHandles = ['weinKategorie', 'weinRegion', 'weinJahrgange', 'weinProduzent', 'weinRebsorten', 'weinFlaschengrossen'];
-        $eagerLoadableSuperTableFieldHandles = ['weinFlaschengrossen.grosse', 'weinRebsorten.rebsorte'];
+        $eagerLoadableSuperTableFieldHandles = ['weinFlaschengrossen.grosse', 'weinFlaschengrossen.lagerbestand', 'weinRebsorten.rebsorte'];
+        $eagerLoadableFields = [];
         foreach ([...$eagerLoadableFieldHandles, ...$eagerLoadableSuperTableFieldHandles] as $key => $value) {
             $eagerLoadableFields[] = [
                 'path' => $value,
@@ -78,7 +77,7 @@ class WarehouseExporter extends ElementExporter
 
         $sheetCol = 1;
         foreach (Db::each($query) as $element) {
-            $elementArr = $element->toArray(['title', 'weinLagerbestand', 'weinAusgetrunken']);
+            $elementArr = $element->toArray(['title', 'weinLagerbestand', 'weinAusgetrunken', 'lagerbestandTotal']);
             foreach ($eagerLoadableFieldHandles as $handle) {
                 $values = [];
 
@@ -88,10 +87,20 @@ class WarehouseExporter extends ElementExporter
                     }
                     $elementArr[$handle] = join(' | ', array_filter($values));
                 } elseif ($handle === 'weinFlaschengrossen') {
+                    $groessen = [];
+                    $lagerbestaende = [];
                     foreach ($element->getFieldValue($handle)->toArray() as $value) {
-                        $values[] = $value->grosse[0]->title;
+                        if (isset($value->grosse[0]->title)) {
+                            $groessen[] = $value->grosse[0]->title;
+                        }
+                        if (isset($value->lagerbestand['stock']) && $value->lagerbestand['stock'] !== '') {
+                            $lagerbestaende[] = $value->lagerbestand['stock'];
+                        } else {
+                            $lagerbestaende[] = '0';
+                        }
                     }
-                    $elementArr[$handle] = join(' | ', array_filter($values));
+                    $elementArr['weinFlaschengrossen'] = join(' | ', array_filter($groessen));
+                    $elementArr['weinFlaschenlagerbestand'] = join(' | ', array_filter($lagerbestaende, fn($v) => $v !== null && $v !== ''));
                 } elseif ($handle === 'weinRegion') {
                     $values = array_column($element->getFieldValue($handle)->toArray(), 'title');
                     $elementArr['Land'] = $values[0] ?? '';
@@ -104,24 +113,26 @@ class WarehouseExporter extends ElementExporter
             }
 
             $sheet->fromArray([
-                'Nummerierung' => $sheetCol++,
+                'Nummer' => $sheetCol++,
                 'Weinname' => $elementArr['title'],
                 'Kategorie' => $elementArr['weinKategorie'],
-                'Lnad' => $elementArr['Land'],
+                'Land' => $elementArr['Land'],
                 'Region' => $elementArr['weinRegion'],
                 'Jahrgang' => $elementArr['weinJahrgange'],
                 'Rebsorte' => $elementArr['weinRebsorten'],
                 'Produzent' => $elementArr['weinProduzent'],
-                'Lagerbestand' => $elementArr['weinLagerbestand']['stock'] ?? '0',
+                'Lagerbestand' => $elementArr['weinFlaschenlagerbestand'],
+                'Lagerbestand Total' => !empty($elementArr['lagerbestandTotal']) ? $elementArr['lagerbestandTotal'] : '0',
                 'Ausgetrunken' => $elementArr['weinAusgetrunken'] ? strtoupper(Craft::t('hommwarehouse', 'finished')) : '',
-                'Flaschengrösse' => $elementArr['weinFlaschengrossen'],
+                'Flaschengroesse' => $elementArr['weinFlaschengrossen'],
             ], null, 'A' . $sheetRow++);
 
-            $sheet->getStyle('F' . $sheetRow - 1)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
-            $sheet->getStyle('I' . $sheetRow - 1)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('F')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle('I')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle('J')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
 
             if (($sheetRow - 1) % 2 === 0) {
-                foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'] as $col) {
+                foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'] as $col) {
                     $sheet->getStyle($col . $sheetRow - 1)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('00EDEDED');
                 }
             }
@@ -137,6 +148,7 @@ class WarehouseExporter extends ElementExporter
         $sheet->getColumnDimension('I')->setWidth(25);
         $sheet->getColumnDimension('J')->setWidth(25);
         $sheet->getColumnDimension('K')->setWidth(25);
+        $sheet->getColumnDimension('L')->setWidth(25);
 
         $tempPath = Craft::$app->getPath()->getTempPath() . '/' . rand() . '.xlsx';
         $writer = new Xlsx($spreadsheet);
