@@ -1,5 +1,5 @@
 /**
- HOMM warehouse plugin for Craft CMS
+ * HOMM warehouse plugin for Craft CMS
  *
  * HOMMWarehouseField Field JS
  *
@@ -10,50 +10,32 @@
  * @since     0.0.1
  */
 
-$(function () {
-    const minusButtons = document.querySelector('[data-number="minus"]');
-    const plusButtons = document.querySelector('[data-number="plus"]');
+document.addEventListener('DOMContentLoaded', function () {
 
-    if (minusButtons) {
-        minusButtons.addEventListener('click', function () {
-            const input = this.nextElementSibling;
-            const currentValue = parseInt(input.value, 10) || 0;
-            if (input.stepDown) {
-                input.stepDown();
-            } else {
-                input.value = currentValue - 1;
-            }
-            input.dispatchEvent(new Event('change'));
-        });
+    function handleNumberButton(e, direction) {
+        const input = direction === 'minus' ? e.target.nextElementSibling : e.target.previousElementSibling;
+        if (!input) return;
+        const currentValue = parseInt(input.value, 10) || 0;
+        if (direction === 'minus') {
+            input.stepDown ? input.stepDown() : input.value = currentValue - 1;
+        } else {
+            input.stepUp ? input.stepUp() : input.value = currentValue + 1;
+        }
+        input.dispatchEvent(new Event('change'));
     }
 
-    if (plusButtons) {
-        plusButtons.addEventListener('click', function () {
-            const input = this.previousElementSibling;
-            const currentValue = parseInt(input.value, 10) || 0;
-            if (input.stepUp) {
-                input.stepUp();
-            } else {
-                input.value = currentValue + 1;
-            }
-            input.dispatchEvent(new Event('change'));
+    document.querySelectorAll('[data-number="minus"]').forEach(btn =>
+        btn.addEventListener('click', e => handleNumberButton(e, 'minus'))
+    );
+    document.querySelectorAll('[data-number="plus"]').forEach(btn =>
+        btn.addEventListener('click', e => handleNumberButton(e, 'plus'))
+    );
+
+    document.querySelectorAll('.warehouse-attribute [data-icon="info"]').forEach(infoIcon => {
+        infoIcon.addEventListener('click', function(e) {
+            let infoContainer = this.querySelector('div');
+            if (!infoContainer) return;
+            infoContainer.style.display = (infoContainer.style.display === 'block') ? 'none' : 'block';
         });
-    }
-});
-
-
-$(function () {
-    const infoIcon = document.querySelector('.warehouse-attribute [data-icon="info"]');
-
-    if (infoIcon) {
-        infoIcon.addEventListener('click', function () {
-            let infoContainer = infoIcon.firstChild;
-
-            if (infoContainer.style.display == 'none') {
-                infoContainer.style.display = 'block';
-            } else {
-                infoContainer.style.display = 'none';
-            }
-        });
-    }
+    });
 });
