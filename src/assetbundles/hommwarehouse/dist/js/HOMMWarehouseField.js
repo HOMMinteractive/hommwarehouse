@@ -31,14 +31,11 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.addEventListener('click', e => handleNumberButton(e, 'plus'))
     );
 
-    document.querySelectorAll('.warehouse-attribute').forEach(attr => {
-        attr.addEventListener('click', function(e) {
-            const infoIcon = e.target.closest('[data-icon="info"]');
-            if (infoIcon) {
-                let infoContainer = infoIcon.querySelector('div');
-                if (!infoContainer) return;
-                infoContainer.style.display = (infoContainer.style.display === 'block') ? 'none' : 'block';
-            }
+    document.querySelectorAll('.warehouse-attribute [data-icon="info"]').forEach(infoIcon => {
+        infoIcon.addEventListener('click', function(e) {
+            let infoContainer = this.querySelector('div');
+            if (!infoContainer) return;
+            infoContainer.style.display = (infoContainer.style.display === 'block') ? 'none' : 'block';
         });
     });
 });
