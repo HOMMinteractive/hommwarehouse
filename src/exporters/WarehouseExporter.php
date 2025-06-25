@@ -152,14 +152,14 @@ class WarehouseExporter extends ElementExporter
                 'Produzent' => $elementArr['weinProduzent'],
                 'Lagerbestand' => $elementArr['weinFlaschenlagerbestand'],
                 'Flaschengroesse' => $elementArr['weinFlaschengrossen'],
-                'Lagerbestand Total' => ($elementArr['lagerbestandTotal'] ?? 0) > 0 ? $elementArr['lagerbestandTotal'] : '',
+                'Lagerbestand Total' => $elementArr['lagerbestandTotal'] ?: '',
                 'Preise Flaschen' => $elementArr['weinEinkaufspreis'],
-                'Flaschen Total' => ($elementArr['flaschenTotalSum'] ?? 0) > 0 ? join(' | ', $elementArr['flaschenTotalArray'] ?? []) : '',
+                'Flaschen Total' => $elementArr['flaschenTotalSum'] > 0 ? join(' | ', $elementArr['flaschenTotalArray']) : '',
                 'Ausgetrunken' => $elementArr['weinAusgetrunken'] ? strtoupper(Craft::t('hommwarehouse', 'finished')) : '',
             ], null, 'A' . $sheetRow++);
 
-            $totalLagerbestand += $elementArr['lagerbestandTotal'] ?? 0;
-            $totalFlaschenTotal += $elementArr['flaschenTotalSum'] ?? 0;
+            $totalLagerbestand += $elementArr['lagerbestandTotal'] ?: 0;
+            $totalFlaschenTotal += $elementArr['flaschenTotalSum'] ?: 0;
 
             $sheet->getStyle('F')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
             $sheet->getStyle('I')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
