@@ -126,7 +126,7 @@ class HOMMWarehouseField extends Field implements PreviewableFieldInterface
         );
     }
 
-    public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
+    public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
         if (!HOMMWarehouse::$plugin->getSettings()->enabled) {
             return '';

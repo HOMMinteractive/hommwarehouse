@@ -2,7 +2,7 @@
     "name": "homm/hommwarehouse",
     "description": "Craft CMS warehouse field",
     "type": "craft-plugin",
-    "version": "0.0.5",
+    "version": "1.0.0",
     "keywords": [
         "craft",
         "cms",
@@ -24,7 +24,7 @@
     ],
     "require": {
         "php": "^8.0|^8.1",
-        "craftcms/cms": "^4.0.0",
+        "craftcms/cms": "^5.0.0",
         "ext-json": "*",
         "ext-fileinfo": "*",
         "phpoffice/phpspreadsheet": "^3.7"
