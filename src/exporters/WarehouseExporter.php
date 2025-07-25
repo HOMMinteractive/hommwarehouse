@@ -49,21 +49,21 @@ class WarehouseExporter extends ElementExporter
             'Rebsorte',
             'Produzent',
             'Lagerbestand',
-            'Ausgetrunken',
             'Flaschengroesse',
+            'Lagerbestand Total',
+            'Preise Flaschen',
+            'Flaschen Total',
+            'Ausgetrunken',
         ];
         $sheet->fromArray($cols, null, 'A' . $sheetRow++);
 
-        foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'] as $col) {
+        foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'] as $col) {
             $sheet->getStyle($col . $sheetRow - 1)->getFont()->setBold(true);
         }
 
-        $sheet->getStyle('F' . $sheetRow - 1)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
-        $sheet->getStyle('I' . $sheetRow - 1)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-
-
         $eagerLoadableFieldHandles = ['weinKategorie', 'weinRegion', 'weinJahrgange', 'weinProduzent', 'weinRebsorten', 'weinFlaschengrossen'];
-        $eagerLoadableSuperTableFieldHandles = ['weinFlaschengrossen.grosse', 'weinRebsorten.rebsorte'];
+        $eagerLoadableSuperTableFieldHandles = ['weinFlaschengrossen.grosse', 'weinFlaschengrossen.lagerbestand', 'weinFlaschengrossen.einkaufspreis', 'weinRebsorten.rebsorte'];
+        $eagerLoadableFields = [];
         foreach ([...$eagerLoadableFieldHandles, ...$eagerLoadableSuperTableFieldHandles] as $key => $value) {
             $eagerLoadableFields[] = [
                 'path' => $value,
@@ -77,21 +77,59 @@ class WarehouseExporter extends ElementExporter
         $query->with($eagerLoadableFields);
 
         $sheetCol = 1;
+        $totalLagerbestand = 0;
+        $totalFlaschenTotal = 0;
+
         foreach (Db::each($query) as $element) {
-            $elementArr = $element->toArray(['title', 'weinLagerbestand', 'weinAusgetrunken']);
+            $elementArr = $element->toArray(['title', 'weinLagerbestand', 'weinAusgetrunken', 'lagerbestandTotal']);
             foreach ($eagerLoadableFieldHandles as $handle) {
                 $values = [];
 
                 if ($handle === 'weinRebsorten') {
                     foreach ($element->getFieldValue($handle)->toArray() as $value) {
-                        $values[] = $value->rebsorte[0]->title;
+                        if (isset($value->rebsorte[0]->title)) {
+                            $values[] = $value->rebsorte[0]->title;
+                        }
                     }
                     $elementArr[$handle] = join(' | ', array_filter($values));
                 } elseif ($handle === 'weinFlaschengrossen') {
+                    $groessen = [];
+                    $lagerbestaende = [];
+                    $einkaufspreise = [];
+                    $flaschenTotalArray = [];
+                    $flaschenTotalSum = 0;
+
                     foreach ($element->getFieldValue($handle)->toArray() as $value) {
-                        $values[] = $value->grosse[0]->title;
+                        if (isset($value->grosse[0]->title)) {
+                            $groessen[] = $value->grosse[0]->title;
+                        }
+
+                        if (isset($value->lagerbestand['stock']) && $value->lagerbestand['stock'] !== '') {
+                            $lagerbestand = $value->lagerbestand['stock'];
+                            $lagerbestaende[] = $lagerbestand;
+                        } else {
+                            $lagerbestand = 0;
+                            $lagerbestaende[] = '0';
+                        }
+
+                        if (isset($value->einkaufspreis) && $value->einkaufspreis !== null && $value->einkaufspreis !== '') {
+                            $preis = $value->einkaufspreis;
+                            $einkaufspreise[] = number_format($preis, 2);
+                        } else {
+                            $preis = 0;
+                            $einkaufspreise[] = '0.00';
+                        }
+
+                        $total = $lagerbestand * $preis;
+                        $flaschenTotalArray[] = number_format($total, 2);
+                        $flaschenTotalSum += $total;
                     }
-                    $elementArr[$handle] = join(' | ', array_filter($values));
+
+                    $elementArr['weinFlaschengrossen'] = join(' | ', array_filter($groessen));
+                    $elementArr['weinFlaschenlagerbestand'] = array_filter($lagerbestaende, fn($v) => $v > 0) ? join(' | ', $lagerbestaende) : '';
+                    $elementArr['weinEinkaufspreis'] = array_filter($einkaufspreise, fn($v) => $v > 0) ? join(' | ', $einkaufspreise) : '';
+                    $elementArr['flaschenTotalArray'] = $flaschenTotalArray;
+                    $elementArr['flaschenTotalSum'] = $flaschenTotalSum;
                 } elseif ($handle === 'weinRegion') {
                     $values = array_column($element->getFieldValue($handle)->toArray(), 'title');
                     $elementArr['Land'] = $values[0] ?? '';
@@ -104,28 +142,59 @@ class WarehouseExporter extends ElementExporter
             }
 
             $sheet->fromArray([
-                'Nummerierung' => $sheetCol++,
+                'Nummer' => $sheetCol++,
                 'Weinname' => $elementArr['title'],
                 'Kategorie' => $elementArr['weinKategorie'],
-                'Lnad' => $elementArr['Land'],
+                'Land' => $elementArr['Land'],
                 'Region' => $elementArr['weinRegion'],
                 'Jahrgang' => $elementArr['weinJahrgange'],
                 'Rebsorte' => $elementArr['weinRebsorten'],
                 'Produzent' => $elementArr['weinProduzent'],
-                'Lagerbestand' => $elementArr['weinLagerbestand']['stock'] ?? '0',
+                'Lagerbestand' => $elementArr['weinFlaschenlagerbestand'],
+                'Flaschengroesse' => $elementArr['weinFlaschengrossen'],
+                'Lagerbestand Total' => $elementArr['lagerbestandTotal'] ?: '',
+                'Preise Flaschen' => $elementArr['weinEinkaufspreis'],
+                'Flaschen Total' => $elementArr['flaschenTotalSum'] > 0 ? join(' | ', $elementArr['flaschenTotalArray']) : '',
                 'Ausgetrunken' => $elementArr['weinAusgetrunken'] ? strtoupper(Craft::t('hommwarehouse', 'finished')) : '',
-                'Flaschengrösse' => $elementArr['weinFlaschengrossen'],
             ], null, 'A' . $sheetRow++);
 
-            $sheet->getStyle('F' . $sheetRow - 1)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
-            $sheet->getStyle('I' . $sheetRow - 1)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            $totalLagerbestand += $elementArr['lagerbestandTotal'] ?: 0;
+            $totalFlaschenTotal += $elementArr['flaschenTotalSum'] ?: 0;
+
+            $sheet->getStyle('F')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle('I')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle('K')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle('L')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle('M')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
 
             if (($sheetRow - 1) % 2 === 0) {
-                foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'] as $col) {
+                foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'] as $col) {
                     $sheet->getStyle($col . $sheetRow - 1)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('00EDEDED');
                 }
             }
         }
+
+        $sheet->fromArray([
+            '', // Nummer
+            '', // Weinname
+            '', // Kategorie
+            '', // Land
+            '', // Region
+            '', // Jahrgang
+            '', // Rebsorte
+            '', // Produzent
+            '', // Lagerbestand
+            '', // Flaschengroesse
+            'Total: ' . number_format($totalLagerbestand, 2), // Lagerbestand Total
+            '', // Preise Flaschen
+            'Total: ' . number_format($totalFlaschenTotal, 2), // Flaschen Total
+            '', // Ausgetrunken
+        ], null, 'A' . $sheetRow++);
+
+        $sheet->getStyle('K' . ($sheetRow - 1))->getFont()->setBold(true);
+        $sheet->getStyle('K' . ($sheetRow - 1))->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('00DDDDDD');
+        $sheet->getStyle('M' . ($sheetRow - 1))->getFont()->setBold(true);
+        $sheet->getStyle('M' . ($sheetRow - 1))->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('00DDDDDD');
 
         $sheet->getColumnDimension('B')->setWidth(40);
         $sheet->getColumnDimension('C')->setWidth(17);
@@ -136,7 +205,10 @@ class WarehouseExporter extends ElementExporter
         $sheet->getColumnDimension('H')->setWidth(40);
         $sheet->getColumnDimension('I')->setWidth(25);
         $sheet->getColumnDimension('J')->setWidth(25);
-        $sheet->getColumnDimension('K')->setWidth(25);
+        $sheet->getColumnDimension('K')->setWidth(17);
+        $sheet->getColumnDimension('L')->setWidth(25);
+        $sheet->getColumnDimension('M')->setWidth(25);
+        $sheet->getColumnDimension('N')->setWidth(25);
 
         $tempPath = Craft::$app->getPath()->getTempPath() . '/' . rand() . '.xlsx';
         $writer = new Xlsx($spreadsheet);
