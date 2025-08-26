@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres
 to [Semantic Versioning](http://semver.org/).
 
+## 1.0.1 - 2025-08-26
+
+- Prevent type error in Excel export
+
+## 1.0.0 - 2025-07-25
+
+- added Craft CMS 5.x support
+
 ## 0.0.5 - 2025-06-25
 
 - Added 'Preise Flaschen', 'Flaschen Total' and footer to Warehouse Export

@@ -114,6 +114,9 @@ class WarehouseExporter extends ElementExporter
 
                         if (isset($value->einkaufspreis) && $value->einkaufspreis !== null && $value->einkaufspreis !== '') {
                             $preis = $value->einkaufspreis;
+                            if (!is_numeric($preis)) {
+                                $preis = 0;
+                            }
                             $einkaufspreise[] = number_format($preis, 2);
                         } else {
                             $preis = 0;
