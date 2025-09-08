@@ -188,7 +188,7 @@ class WarehouseExporter extends ElementExporter
             '', // Produzent
             '', // Lagerbestand
             '', // Flaschengroesse
-            'Total: ' . number_format($totalLagerbestand, 2), // Lagerbestand Total
+            'Total: ' . number_format($totalLagerbestand, 0), // Lagerbestand Total
             '', // Preise Flaschen
             'Total: ' . number_format($totalFlaschenTotal, 2), // Flaschen Total
             '', // Ausgetrunken
