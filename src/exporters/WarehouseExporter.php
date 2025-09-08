@@ -4,10 +4,14 @@ namespace homm\hommwarehouse\exporters;
 
 use Craft;
 use craft\base\ElementExporter;
+use craft\base\ElementInterface;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
+use craft\elements\GlobalSet;
 use craft\helpers\Db;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class WarehouseExporter extends ElementExporter
@@ -32,7 +36,7 @@ class WarehouseExporter extends ElementExporter
 
         $sheetRow = 1;
 
-        $globalAddress = \craft\elements\GlobalSet::find()->handle('globalAddress')->one();
+        $globalAddress = GlobalSet::find()->handle('globalAddress')->one();
 
         $sheet->fromArray(['Wein-Inventar - ' . $globalAddress->globalAddressContactCompany . ' - ' . date('d.m.Y')], null, 'A' . $sheetRow++);
         $sheet->getStyle('A' . $sheetRow - 1)->getFont()->setSize(20);
@@ -62,7 +66,7 @@ class WarehouseExporter extends ElementExporter
         }
 
         $eagerLoadableFieldHandles = ['weinKategorie', 'weinRegion', 'weinJahrgange', 'weinProduzent', 'weinRebsorten', 'weinFlaschengrossen'];
-        $eagerLoadableSuperTableFieldHandles = ['weinFlaschengrossen.grosse', 'weinFlaschengrossen.lagerbestand', 'weinFlaschengrossen.einkaufspreis', 'weinRebsorten.rebsorte'];
+        $eagerLoadableSuperTableFieldHandles = ['weinFlaschengrossen:grosse', 'weinFlaschengrossen:lagerbestand', 'weinFlaschengrossen:einkaufspreis', 'weinRebsorten:rebsorte'];
         $eagerLoadableFields = [];
         foreach ([...$eagerLoadableFieldHandles, ...$eagerLoadableSuperTableFieldHandles] as $key => $value) {
             $eagerLoadableFields[] = [
@@ -86,9 +90,13 @@ class WarehouseExporter extends ElementExporter
                 $values = [];
 
                 if ($handle === 'weinRebsorten') {
-                    foreach ($element->getFieldValue($handle)->toArray() as $value) {
-                        if (isset($value->rebsorte[0]->title)) {
-                            $values[] = $value->rebsorte[0]->title;
+                    $values = [];
+                    $rebsorten = $element->getFieldValue($handle);
+
+                    foreach ($rebsorten->all() as $block) {
+                        $rebsorte = $block->rebsorte;
+                        if ($rebsorte && isset($rebsorte[0]->title)) {
+                            $values[] = $rebsorte[0]->title;
                         }
                     }
                     $elementArr[$handle] = join(' | ', array_filter($values));
@@ -99,27 +107,31 @@ class WarehouseExporter extends ElementExporter
                     $flaschenTotalArray = [];
                     $flaschenTotalSum = 0;
 
-                    foreach ($element->getFieldValue($handle)->toArray() as $value) {
-                        if (isset($value->grosse[0]->title)) {
-                            $groessen[] = $value->grosse[0]->title;
+                    $flaschengrossen = $element->getFieldValue($handle);
+
+                    foreach ($flaschengrossen->all() as $block) {
+                        $grosse = $block->grosse;
+                        $lagerbestandData = $block->lagerbestand;
+                        $einkaufspreis = $block->einkaufspreis;
+
+                        if ($grosse && isset($grosse[0])) {
+                            $groessen[] = $grosse[0]->title;
                         }
 
-                        if (isset($value->lagerbestand['stock']) && $value->lagerbestand['stock'] !== '') {
-                            $lagerbestand = $value->lagerbestand['stock'];
+                        $lagerbestand = 0;
+                        if ($lagerbestandData && isset($lagerbestandData['stock']) && $lagerbestandData['stock'] !== '') {
+                            $stockValue = $lagerbestandData['stock'];
+                            $lagerbestand = is_numeric($stockValue) ? floatval($stockValue) : 0;
                             $lagerbestaende[] = $lagerbestand;
                         } else {
-                            $lagerbestand = 0;
                             $lagerbestaende[] = '0';
                         }
 
-                        if (isset($value->einkaufspreis) && $value->einkaufspreis !== null && $value->einkaufspreis !== '') {
-                            $preis = $value->einkaufspreis;
-                            if (!is_numeric($preis)) {
-                                $preis = 0;
-                            }
+                        $preis = 0;
+                        if ($einkaufspreis !== null && $einkaufspreis !== '') {
+                            $preis = is_numeric($einkaufspreis) ? floatval($einkaufspreis) : 0;
                             $einkaufspreise[] = number_format($preis, 2);
                         } else {
-                            $preis = 0;
                             $einkaufspreise[] = '0.00';
                         }
 
@@ -164,15 +176,15 @@ class WarehouseExporter extends ElementExporter
             $totalLagerbestand += $elementArr['lagerbestandTotal'] ?: 0;
             $totalFlaschenTotal += $elementArr['flaschenTotalSum'] ?: 0;
 
-            $sheet->getStyle('F')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
-            $sheet->getStyle('I')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
-            $sheet->getStyle('K')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
-            $sheet->getStyle('L')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
-            $sheet->getStyle('M')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle('F')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle('I')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle('K')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle('L')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle('M')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
             if (($sheetRow - 1) % 2 === 0) {
                 foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N'] as $col) {
-                    $sheet->getStyle($col . $sheetRow - 1)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('00EDEDED');
+                    $sheet->getStyle($col . $sheetRow - 1)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('00EDEDED');
                 }
             }
         }
@@ -195,9 +207,9 @@ class WarehouseExporter extends ElementExporter
         ], null, 'A' . $sheetRow++);
 
         $sheet->getStyle('K' . ($sheetRow - 1))->getFont()->setBold(true);
-        $sheet->getStyle('K' . ($sheetRow - 1))->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('00DDDDDD');
+        $sheet->getStyle('K' . ($sheetRow - 1))->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('00DDDDDD');
         $sheet->getStyle('M' . ($sheetRow - 1))->getFont()->setBold(true);
-        $sheet->getStyle('M' . ($sheetRow - 1))->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('00DDDDDD');
+        $sheet->getStyle('M' . ($sheetRow - 1))->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('00DDDDDD');
 
         $sheet->getColumnDimension('B')->setWidth(40);
         $sheet->getColumnDimension('C')->setWidth(17);
