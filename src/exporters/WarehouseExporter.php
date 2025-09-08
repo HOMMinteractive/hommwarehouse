@@ -114,6 +114,9 @@ class WarehouseExporter extends ElementExporter
 
                         if (isset($value->einkaufspreis) && $value->einkaufspreis !== null && $value->einkaufspreis !== '') {
                             $preis = $value->einkaufspreis;
+                            if (!is_numeric($preis)) {
+                                $preis = 0;
+                            }
                             $einkaufspreise[] = number_format($preis, 2);
                         } else {
                             $preis = 0;
@@ -185,7 +188,7 @@ class WarehouseExporter extends ElementExporter
             '', // Produzent
             '', // Lagerbestand
             '', // Flaschengroesse
-            'Total: ' . number_format($totalLagerbestand, 2), // Lagerbestand Total
+            'Total: ' . number_format($totalLagerbestand, 0), // Lagerbestand Total
             '', // Preise Flaschen
             'Total: ' . number_format($totalFlaschenTotal, 2), // Flaschen Total
             '', // Ausgetrunken
