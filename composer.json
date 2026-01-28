@@ -2,7 +2,7 @@
     "name": "homm/hommwarehouse",
     "description": "Craft CMS warehouse field",
     "type": "craft-plugin",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "keywords": [
         "craft",
         "cms",
@@ -27,7 +27,7 @@
         "craftcms/cms": "^5.0.0",
         "ext-json": "*",
         "ext-fileinfo": "*",
-        "phpoffice/phpspreadsheet": "^3.7"
+        "phpoffice/phpspreadsheet": "^5.4"
     },
     "autoload": {
         "psr-4": {
