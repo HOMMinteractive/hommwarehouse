@@ -68,24 +68,29 @@ class HOMMWarehouseField extends Field implements PreviewableFieldInterface
      */
     public function normalizeValue(mixed $value, ?\craft\base\ElementInterface $element = null): mixed
     {
-        if (gettype($value) == 'string') {
-            $json = array_filter(json_decode($value, true));
-
-            if (empty($json)) {
-                $json = [
-                    'updatedAt' => null,
-                    'stock' => 0,
-                ];
-            }
-
-            return $json;
-        } elseif ($value === null) {
-            return $value;
-        } else {
-            $value['updatedAt'] = date('Y-m-d H:i:s');
-            $value['stock'] = $value['stock'] ?? 0;
-            return json_encode($value);
+        if (is_string($value)) {
+            $value = json_decode($value, true);
         }
+
+        if (is_array($value)) {
+            $value = array_filter($value);
+        }
+
+        if (empty($value)) {
+            return [
+                'updatedAt' => null,
+                'stock' => 0,
+            ];
+        }
+
+        return $value;
+    }
+
+    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
+    {
+        $value['updatedAt'] = date('Y-m-d H:i:s');
+
+        return parent::serializeValue($value, $element);
     }
 
     /**
