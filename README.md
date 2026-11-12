@@ -8,7 +8,7 @@ Craft CMS warehouse field type
 
 ## Requirements
 
-This plugin requires Craft CMS 4.x.
+This plugin requires Craft CMS 5.x.
 
 ## Installation
 
@@ -33,6 +33,14 @@ This plugin adds a new warehouse field type
 Go to _Settings > HOMM Warehouse_:
 
 Here you can set if the plugin should be enabled/disabled.
+
+When disabled, the warehouse fields stay in the field layouts (no data is lost), but they are hidden in the edit forms and the export is not available.
+
+### Configuration file
+
+The settings can be overridden per environment in `config/hommwarehouse.php`. Values set there take precedence over the Control Panel setting, which stays the fallback for everything not set in the file.
+
+Copy [`src/config.php`](src/config.php) to `config/hommwarehouse.php` as a starting point. It reads `HOMMWAREHOUSE_ENABLED` from the `.env` (only if filled) and lets you list further fields in `hiddenFieldHandles`, which are hidden together with the warehouse fields when the plugin is disabled.
 
 ## Using HOMM warehouse (not done yet)
 

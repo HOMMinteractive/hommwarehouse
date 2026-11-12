@@ -29,6 +29,14 @@ class Settings extends Model
      */
     public bool $enabled = true;
 
+    /**
+     * Handles of further fields that belong to the warehouse (e.g. a stock total field)
+     * and are hidden in edit forms together with the warehouse fields when disabled.
+     *
+     * @var string[]
+     */
+    public array $hiddenFieldHandles = [];
+
     // Public Methods
     // =========================================================================
 
@@ -39,6 +47,7 @@ class Settings extends Model
     {
         return [
             [['enabled'], 'boolean'],
+            [['hiddenFieldHandles'], 'each', 'rule' => ['string']],
         ];
     }
 }

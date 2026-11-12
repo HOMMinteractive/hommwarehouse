@@ -16,7 +16,10 @@ use craft\base\Plugin;
 use craft\elements\Entry;
 use craft\services\Fields;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\CreateFieldLayoutFormEvent;
 use craft\events\RegisterElementExportersEvent;
+use craft\fieldlayoutelements\CustomField;
+use craft\models\FieldLayout;
 use homm\hommwarehouse\assetbundles\settings\SettingsAsset;
 use homm\hommwarehouse\exporters\WarehouseExporter;
 use homm\hommwarehouse\fields\HOMMWarehouseField;
@@ -85,6 +88,15 @@ class HOMMWarehouse extends Plugin
                     $event->exporters[] = WarehouseExporter::class;
                 }
             );
+        } else {
+            // The fields stay in the layouts (no data is lost), they are only hidden in edit forms
+            Event::on(
+                FieldLayout::class,
+                FieldLayout::EVENT_CREATE_FORM,
+                function(CreateFieldLayoutFormEvent $event) {
+                    $this->hideWarehouseFields($event);
+                }
+            );
         }
 
         Craft::info(
@@ -99,6 +111,38 @@ class HOMMWarehouse extends Plugin
 
     // Protected Methods
     // =========================================================================
+
+    /**
+     * Removes warehouse fields and the configured further fields from element edit forms.
+     */
+    protected function hideWarehouseFields(CreateFieldLayoutFormEvent $event): void
+    {
+        $hiddenHandles = $this->getSettings()->hiddenFieldHandles;
+        $tabs = [];
+
+        foreach ($event->tabs as $tab) {
+            $elements = array_values(array_filter(
+                $tab->getElements(),
+                fn($element) => !(
+                    $element instanceof CustomField
+                    && (
+                        $element->getField() instanceof HOMMWarehouseField
+                        || in_array($element->getField()->handle, $hiddenHandles, true)
+                    )
+                )
+            ));
+
+            if (count($elements) !== count($tab->getElements())) {
+                // Clone so the cached field layout keeps all its elements
+                $tab = clone $tab;
+                $tab->setElements($elements);
+            }
+
+            $tabs[] = $tab;
+        }
+
+        $event->tabs = $tabs;
+    }
 
     /**
      * @inheritdoc

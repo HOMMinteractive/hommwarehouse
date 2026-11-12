@@ -22,4 +22,5 @@ return [
     'Decrease' => 'Verringern',
     'Increase' => 'Vergrössern',
     'Warehouse' => 'Lagerverwaltung',
+    'This is being overridden by config/hommwarehouse.php.' => 'Wird durch config/hommwarehouse.php übersteuert.',
 ];

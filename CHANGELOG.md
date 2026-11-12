@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres
 to [Semantic Versioning](http://semver.org/).
 
+## 1.0.6 - 2026-11-12
+
+- Hide warehouse fields (and the fields listed in `hiddenFieldHandles`) in edit forms when the plugin is disabled
+- Settings can be overridden per environment in `config/hommwarehouse.php` (template: `src/config.php`, reads `HOMMWAREHOUSE_ENABLED`)
+
 ## 1.0.4 - 2026-05-13
 
 - Fixed normalizing/serializing field value

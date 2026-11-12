@@ -17,6 +17,10 @@
 
 {% do view.registerAssetBundle("homm\\hommwarehouse\\assetbundles\\settings\\SettingsAsset") %}
 
+{# Settings from config/hommwarehouse.php take precedence over the ones stored here #}
+{% set configOverrides = craft.app.config.getConfigFromFile('hommwarehouse') %}
+{% set enabledOverridden = configOverrides.enabled is defined %}
+
 {{ forms.lightswitchField({
     label: 'Enabled?'|t('hommwarehouse'),
     instructions: 'Enable / Disable this plugin'|t('hommwarehouse'),
@@ -24,4 +28,12 @@
     name: 'enabled',
     on: settings['enabled'],
     required: true,
+    disabled: enabledOverridden,
+    warning: enabledOverridden ? 'This is being overridden by config/hommwarehouse.php.'|t('hommwarehouse'),
 }) }}
+
+{% if enabledOverridden %}
+    {# Keep the stored value, else saving would write the overridden value to the project config #}
+    {% set storedEnabled = craft.app.projectConfig.get('plugins.hommwarehouse.settings.enabled') ?? true %}
+    <input type="hidden" name="enabled" value="{{ storedEnabled ? '1' : '' }}">
+{% endif %}

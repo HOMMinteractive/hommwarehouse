@@ -22,4 +22,5 @@ return [
     'Decrease' => 'Decrease',
     'Increase' => 'Increase',
     'Warehouse' => 'Warehouse',
+    'This is being overridden by config/hommwarehouse.php.' => 'This is being overridden by config/hommwarehouse.php.',
 ];
